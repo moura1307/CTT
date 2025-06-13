@@ -1,0 +1,7 @@
+name: CTT
+version: '1.0-SNAPSHOT'
+main: com.coffee.cTT.CTT
+api-version: '1.21'
+prefix: CTT
+authors: [ Coffee1307 ]
+description: Coffee's Trinkets and Toys delivers a fresh arsenal of exciting items to experiment and tinker with!
