@@ -14,8 +14,6 @@ public final class CTT extends JavaPlugin implements Listener { // Implement Lis
 
     @Override
     public void onEnable() {
-        RecipeManager.registerRecipes(this);
-
         getServer().getPluginManager().registerEvents(
                 new OceanCompass(this),
                 this

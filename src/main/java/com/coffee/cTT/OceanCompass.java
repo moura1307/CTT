@@ -11,12 +11,10 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.CompassMeta;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.StructureSearchResult;
 
-import java.net.http.WebSocket;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,20 +30,24 @@ public class OceanCompass implements Listener {
 
     @EventHandler
     public void onCompassActive(PlayerInteractEvent e) {
-        if(e.getAction() != Action.RIGHT_CLICK_AIR && e.getAction() != Action.RIGHT_CLICK_BLOCK) {
-            return;
-        }
+        if (e.getAction() != Action.RIGHT_CLICK_AIR) return;
 
         Player player = e.getPlayer();
         ItemStack item = e.getItem();
-        ItemMeta oldOceanCompassMeta = item.getItemMeta();
 
+        // Validate item
         if (item == null || item.getType() != Material.COMPASS) return;
+
+        ItemMeta oldOceanCompassMeta = item.getItemMeta();
         if (oldOceanCompassMeta == null) return;
 
-        PersistentDataContainer container = oldOceanCompassMeta.getPersistentDataContainer();
-
-        if (!container.has(compassKey, PersistentDataType.STRING)) return;
+        NamespacedKey itemKey = new NamespacedKey(plugin, "ocean_compass");
+        oldOceanCompassMeta.getPersistentDataContainer().set(
+                itemKey,
+                PersistentDataType.STRING,
+                "active"
+        );
+        item.setItemMeta(oldOceanCompassMeta);
 
         e.setCancelled(true);
 
