@@ -4,7 +4,6 @@ import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.generator.structure.StructureType;
 import org.bukkit.inventory.EquipmentSlot;
@@ -17,6 +16,7 @@ import org.bukkit.util.StructureSearchResult;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class OceanCompass implements Listener {
 
@@ -30,26 +30,22 @@ public class OceanCompass implements Listener {
 
     @EventHandler
     public void onCompassActive(PlayerInteractEvent e) {
-        if (e.getAction() != Action.RIGHT_CLICK_AIR) return;
+        if (!e.getAction().toString().contains("RIGHT_CLICK")) return;
 
         Player player = e.getPlayer();
         ItemStack item = e.getItem();
 
-        // Validate item
         if (item == null || item.getType() != Material.COMPASS) return;
 
-        ItemMeta oldOceanCompassMeta = item.getItemMeta();
-        if (oldOceanCompassMeta == null) return;
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return;
 
-        NamespacedKey itemKey = new NamespacedKey(plugin, "ocean_compass");
-        oldOceanCompassMeta.getPersistentDataContainer().set(
-                itemKey,
-                PersistentDataType.STRING,
-                "active"
-        );
-        item.setItemMeta(oldOceanCompassMeta);
+        NamespacedKey activationKey = new NamespacedKey(plugin, "ocean_compass_activated");
 
-        e.setCancelled(true);
+        if (meta.getPersistentDataContainer().has(activationKey, PersistentDataType.BYTE)) {
+            e.setCancelled(true);
+            return;
+        }
 
         ItemStack activatedCompass = locateStructure(player, StructureType.OCEAN_MONUMENT, 10000);
 
@@ -57,6 +53,22 @@ public class OceanCompass implements Listener {
             player.sendMessage(ChatColor.RED + "No Ocean Monument found nearby!");
             return;
         }
+
+        CompassMeta activatedMeta = (CompassMeta) activatedCompass.getItemMeta();
+        if (activatedMeta != null) {
+            activatedMeta.getPersistentDataContainer().set(
+                    activationKey,
+                    PersistentDataType.BYTE,
+                    (byte) 1
+            );
+
+            UUID uuid = UUID.randomUUID();
+            activatedMeta.getPersistentDataContainer().set(compassKey, PersistentDataType.STRING, uuid.toString());
+
+            activatedCompass.setItemMeta(activatedMeta);
+        }
+
+        e.setCancelled(true);
 
         EquipmentSlot hand = e.getHand();
         if (hand == EquipmentSlot.HAND) {
@@ -67,6 +79,7 @@ public class OceanCompass implements Listener {
 
         player.sendMessage(ChatColor.GREEN + "Compass activated! Now tracking the nearest Ocean Monument.");
     }
+
 
     public static ItemStack locateStructure(Player player, StructureType structureType, int searchRadius) {
         World world = player.getWorld();
@@ -88,9 +101,8 @@ public class OceanCompass implements Listener {
 
             oceanCompassMeta.setDisplayName(ChatColor.AQUA + "Ocean Monument Tracker");
             List<String> lore = new ArrayList<>();
-            lore.add("This compass shall bring you to the proximity of the temple of a deadly foe");
-            lore.add("");
-            lore.add(ChatColor.DARK_GRAY + "ctt.oceancompass");
+            lore.add("This compass shall bring you to the");
+            lore.add("proximity of the temple of a deadly foe");
             oceanCompassMeta.setLore(lore);
 
             compass.setItemMeta(oceanCompassMeta);
