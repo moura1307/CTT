@@ -1,0 +1,75 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "C": "minecraft:copper_ingot",
+    "G": "minecraft:gold_ingot"
+  },
+  "pattern": [
+    "CCC",
+    "C C",
+    "G G"
+  ],
+  "result": {
+    "components": {
+      "minecraft:custom_name": {
+        "text": "Diver's Leggings",
+        "color": "gold",
+        "italic": false
+      },
+      "minecraft:attribute_modifiers": [
+        {
+          "type": "minecraft:submerged_mining_speed",
+          "id": "mining.speed",
+          "amount": 0.3,
+          "operation": "add_value",
+          "slot": "legs"
+        },
+        {
+          "type": "minecraft:oxygen_bonus",
+          "id": "oxygen",
+          "amount": 10,
+          "operation": "add_value",
+          "slot": "legs"
+        },
+        {
+          "type": "minecraft:gravity",
+          "id": "gravity",
+          "amount": 0.02,
+          "operation": "add_value",
+          "slot": "legs"
+        },
+        {
+          "type": "minecraft:movement_speed",
+          "id": "speed",
+          "amount": -0.04,
+          "operation": "add_value",
+          "slot": "legs"
+        }
+      ],
+      "minecraft:dyed_color": 12877642,
+      "minecraft:unbreakable": {},
+      "minecraft:lore": [
+        "",
+        {
+          "text": "This ",
+          "extra": [
+            {
+              "text": "rare",
+              "color": "gold"
+            },
+            " item is",
+            {
+              "text": " unbreakable",
+              "color": "blue"
+            },
+            "!"
+          ],
+          "color": "dark_gray"
+        }
+      ]
+    },
+    "count": 1,
+    "id": "minecraft:leather_leggings"
+  }
+}
