@@ -9,14 +9,12 @@ import org.bukkit.generator.structure.StructureType;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.CompassMeta;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.StructureSearchResult;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class OceanCompass implements Listener {
 
@@ -30,56 +28,40 @@ public class OceanCompass implements Listener {
 
     @EventHandler
     public void onCompassActive(PlayerInteractEvent e) {
+        e.getPlayer().sendMessage(plugin.toString());
         if (!e.getAction().toString().contains("RIGHT_CLICK")) return;
+        ItemStack compass = e.getPlayer().getInventory().getItemInHand();
 
-        Player player = e.getPlayer();
-        ItemStack item = e.getItem();
+        if (compass.getItemMeta() == null || compass.getType() != Material.COMPASS) return;
+        if (compass.getItemMeta().getPersistentDataContainer().has(compassKey, PersistentDataType.BYTE)) {
+            NamespacedKey activationKey = new NamespacedKey(plugin, "ocean_compass_activated");
+            if (compass.getItemMeta().getPersistentDataContainer().has(activationKey, PersistentDataType.BYTE)) {
+                e.getPlayer().sendMessage("compass.getItemMeta().getPersistentDataContainer().has(activationKey, PersistentDataType.BYTE = false");
+                e.setCancelled(true);
+            } else {
+                ItemStack activatedCompass = locateStructure(e.getPlayer(), StructureType.OCEAN_MONUMENT, 10000);
+                if (activatedCompass == null) {
+                    e.getPlayer().sendMessage(ChatColor.RED + "No Ocean Monument found nearby!");
+                    return;
+                }
+                CompassMeta activatedMeta = (CompassMeta) activatedCompass.getItemMeta();
+                compass.getItemMeta().getPersistentDataContainer().set(activationKey, PersistentDataType.BYTE, (byte) 1);
+                activatedCompass.setItemMeta(activatedMeta);
 
-        if (item == null || item.getType() != Material.COMPASS) return;
+                EquipmentSlot hand = e.getHand();
+                if (hand == EquipmentSlot.HAND) {
+                    e.getPlayer().getInventory().setItemInMainHand(activatedCompass);
+                } else if (hand == EquipmentSlot.OFF_HAND) {
+                    e.getPlayer().getInventory().setItemInOffHand(activatedCompass);
+                }
 
-        ItemMeta meta = item.getItemMeta();
-        if (meta == null) return;
-
-        NamespacedKey activationKey = new NamespacedKey(plugin, "ocean_compass_activated");
-
-        if (meta.getPersistentDataContainer().has(activationKey, PersistentDataType.BYTE)) {
+                e.getPlayer().sendMessage(ChatColor.GREEN + "Compass activated! Now tracking the nearest Ocean Monument.");
+            }
+        } else {
+            e.getPlayer().sendMessage(compass.getPersistentDataContainer().toString());
             e.setCancelled(true);
-            return;
         }
-
-        ItemStack activatedCompass = locateStructure(player, StructureType.OCEAN_MONUMENT, 10000);
-
-        if (activatedCompass == null) {
-            player.sendMessage(ChatColor.RED + "No Ocean Monument found nearby!");
-            return;
-        }
-
-        CompassMeta activatedMeta = (CompassMeta) activatedCompass.getItemMeta();
-        if (activatedMeta != null) {
-            activatedMeta.getPersistentDataContainer().set(
-                    activationKey,
-                    PersistentDataType.BYTE,
-                    (byte) 1
-            );
-
-            UUID uuid = UUID.randomUUID();
-            activatedMeta.getPersistentDataContainer().set(compassKey, PersistentDataType.STRING, uuid.toString());
-
-            activatedCompass.setItemMeta(activatedMeta);
-        }
-
-        e.setCancelled(true);
-
-        EquipmentSlot hand = e.getHand();
-        if (hand == EquipmentSlot.HAND) {
-            player.getInventory().setItemInMainHand(activatedCompass);
-        } else if (hand == EquipmentSlot.OFF_HAND) {
-            player.getInventory().setItemInOffHand(activatedCompass);
-        }
-
-        player.sendMessage(ChatColor.GREEN + "Compass activated! Now tracking the nearest Ocean Monument.");
     }
-
 
     public static ItemStack locateStructure(Player player, StructureType structureType, int searchRadius) {
         World world = player.getWorld();
